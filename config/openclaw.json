@@ -1,0 +1,57 @@
+{
+  "llm": {
+    "provider": "${env.LLM_PROVIDER}",
+    "model": "${env.MODEL_NAME}"
+  },
+  "plugins": {
+    "telegram": {
+      "token": "${env.TELEGRAM_BOT_TOKEN}"
+    },
+    "web_search": {
+      "provider": "${env.SEARCH_PROVIDER}",
+      "endpoint": "${env.SEARCH_ENDPOINT}",
+      "api_key": "${env.SEARCH_API_KEY}"
+    }
+  },
+  "memory": {
+    "provider": "json_file",
+    "path": "/app/data/memory.json"
+  },
+  "skills": [
+    {
+      "name": "user-onboarding",
+      "path": "skills/user-onboarding/SKILL.md"
+    },
+    {
+      "name": "daily-quiz",
+      "path": "skills/daily-quiz/SKILL.md"
+    }
+  ],
+  "automation": [
+    {
+      "name": "new-user-onboarding",
+      "type": "standing_order",
+      "trigger": {
+        "event": "telegram.new_user"
+      },
+      "action": {
+        "skill": "user-onboarding",
+        "params": {}
+      }
+    },
+    {
+      "name": "nightly-tech-brief",
+      "type": "cron",
+      "cron": "0 21 * * *",
+      "timezone": "${env.TIMEZONE}",
+      "action": {
+        "skill": "daily-quiz",
+        "params": {},
+        "target": {
+          "type": "telegram_broadcast",
+          "message": "Sending your daily tech brief!"
+        }
+      }
+    }
+  ]
+}
