@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  openclaw-assistant:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: openclaw-ai-learning-assistant
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "8080:8080"
+    volumes:
+      # Persist OpenClaw's memory and logs
+      - ./data:/app/data
+      # Mount the skills and config for easy development/updates without rebuilding image
+      - ./config:/app/config
+      - ./skills:/app/skills
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+    command: ["openclaw", "gateway", "--config", "config/openclaw.json"]
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  # Optional: Ollama service for local LLM if not using a cloud provider
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama-llm
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    # Pull a model on startup if it's not already present
+    # Ensure MODEL_NAME in .env matches the model pulled here
+    command: ["ollama", "run", "${MODEL_NAME:-llama3}"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+    environment:
+      - OLLAMA_HOST=0.0.0.0:11434 # Expose Ollama to other containers
+
+volumes:
+  ollama_data:
