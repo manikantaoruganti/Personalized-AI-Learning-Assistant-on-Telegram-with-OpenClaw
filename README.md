@@ -160,8 +160,5 @@ docker exec -it openclaw-ai-learning-assistant sh
 
 User memory and logs are persisted in the `./data` directory on your host machine, thanks to the Docker volume mapping in `docker-compose.yml`.
 
-## 🤝 Contributing
-
-Contributions are welcome! Feel free to open issues or submit pull requests.
-
+ 
 
